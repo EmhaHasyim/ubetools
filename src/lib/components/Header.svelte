@@ -1,0 +1,86 @@
+<script lang="ts">
+	import { page } from '$app/state'
+	import { onMount } from 'svelte'
+
+	let theme = $state<'light' | 'dark'>('light')
+
+	onMount(() => {
+		theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+	})
+
+	function toggleTheme() {
+		theme = theme === 'dark' ? 'light' : 'dark'
+		document.documentElement.dataset.theme = theme
+		try {
+			localStorage.setItem('ubetools-theme', theme)
+		} catch {
+			// localStorage can be blocked; the theme still applies for this view.
+		}
+	}
+</script>
+
+<header
+	class="sticky top-0 z-40 border-b backdrop-blur-sm"
+	style="background: color-mix(in srgb, var(--color-surface) 90%, transparent); border-color: var(--color-border)"
+>
+	<div class="mx-auto flex h-[60px] w-full max-w-5xl items-center justify-between px-4 sm:px-6">
+		<a href="/" class="flex items-center gap-2" aria-label="ubeTools — beranda">
+			<img src="/logo-64.png" alt="" width="30" height="30" class="rounded-md" />
+			<span
+				class="text-base font-semibold tracking-tight"
+				style="color: var(--color-on-surface)"
+			>
+				ubeTools
+			</span>
+		</a>
+
+		<div class="flex items-center gap-2">
+			<nav aria-label="Navigasi utama">
+				<a
+					class="nav-link"
+					href="/tools"
+					aria-current={page.url.pathname.startsWith('/tools') ? 'page' : undefined}
+				>
+					Semua Tool
+				</a>
+			</nav>
+			<button
+				type="button"
+				class="icon-btn"
+				onclick={toggleTheme}
+				aria-label={theme === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'}
+			>
+				{#if theme === 'dark'}
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						stroke-linecap="round"
+						aria-hidden="true"
+					>
+						<circle cx="12" cy="12" r="4" />
+						<path
+							d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+						/>
+					</svg>
+				{:else}
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z" />
+					</svg>
+				{/if}
+			</button>
+		</div>
+	</div>
+</header>

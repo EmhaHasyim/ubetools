@@ -1,0 +1,49 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"env": {
+		"browser": true,
+		"es2022": true,
+		"node": true,
+		"worker": true,
+		"svelte": true
+	},
+	"plugins": ["typescript", "import", "unicorn", "vitest"],
+	"overrides": [
+		{
+			"files": ["**/*.{test,spec}.{js,ts,jsx,tsx}", "**/*.svelte.{test,spec}.{js,ts}"],
+			"env": {
+				"vitest": true
+			}
+		},
+		{
+			"files": ["**/*.svelte"],
+			"rules": {
+				"import/no-unassigned-import": "off"
+			}
+		}
+	],
+	"categories": {
+		"correctness": "deny",
+		"suspicious": "deny"
+	},
+	"rules": {
+		"typescript/no-explicit-any": "deny",
+		"import/extensions": [
+			"deny",
+			"ignorePackages",
+			{
+				"js": "always",
+				"ts": "always"
+			}
+		]
+	},
+	"ignorePatterns": [
+		"node_modules/**",
+		".svelte-kit/**",
+		".wrangler/**",
+		"build/**",
+		"coverage/**",
+		"dist/**",
+		"static/**"
+	]
+}

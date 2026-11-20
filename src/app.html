@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+		<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+		<link rel="icon" href="/logo-512.avif" type="image/avif" sizes="512x512" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<meta name="theme-color" content="#FAFAFA" />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="ubeTools" />
+		<meta property="og:title" content="ubeTools — alat YouTube dan Suno" />
+		<meta
+			property="og:description"
+			content="Unduh thumbnail YouTube, ekstrak tag, dan simpan M4A publik dari Suno."
+		/>
+		<meta property="og:image" content="https://ubetools.workers.dev/logo-512.avif" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="ubeTools — alat YouTube dan Suno" />
+		<meta
+			name="twitter:description"
+			content="Unduh thumbnail YouTube, ekstrak tag, dan simpan M4A publik dari Suno."
+		/>
+		<meta name="twitter:image" content="https://ubetools.workers.dev/logo-512.avif" />
+		<meta name="color-scheme" content="light dark" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			.font-mono {
+				font-family: 'JetBrains Mono', ui-monospace, monospace;
+			}
+			body {
+				font-family: 'Inter', system-ui, -apple-system, sans-serif;
+			}
+			h1,
+			h2,
+			h3,
+			.font-display {
+				font-family: 'Inter', system-ui, -apple-system, sans-serif;
+			}
+			* {
+				scroll-behavior: smooth;
+			}
+			@media (prefers-reduced-motion: reduce) {
+				* {
+					scroll-behavior: auto !important;
+					animation-duration: 0.01ms !important;
+					transition-duration: 0.01ms !important;
+				}
+			}
+		</style>
+		<script>
+			;(function () {
+				try {
+					document.documentElement.classList.add('js')
+				} catch (e) {}
+				try {
+					var stored = localStorage.getItem('ubetools-theme')
+					if (stored === 'light' || stored === 'dark') {
+						document.documentElement.dataset.theme = stored
+					} else {
+						document.documentElement.dataset.theme = 'light'
+					}
+				} catch (e) {
+					document.documentElement.dataset.theme = 'light'
+				}
+			})()
+		</script>
+		%sveltekit.head%
+	</head>
+	<body>
+		%sveltekit.body%
+	</body>
+</html>

@@ -1,0 +1,26 @@
+<script lang="ts">
+	import type { Tool } from '#lib/tools.ts'
+	import ToolIcon from './ToolIcon.svelte'
+
+	let { tool }: { tool: Tool } = $props()
+</script>
+
+<a
+	href="/tools/{tool.slug}"
+	class="tool-card card flex h-full flex-col p-5"
+	aria-label={tool.name}
+>
+	<div class="flex items-start justify-between gap-3">
+		<span class="icon-tile">
+			<ToolIcon tone={tool.tone} size={20} />
+		</span>
+		{#if tool.status === 'soon'}
+			<span class="badge">Segera</span>
+		{/if}
+	</div>
+
+	<h3 class="mt-4 text-base leading-[1.35] font-semibold tracking-[-0.01em]">{tool.name}</h3>
+	<p class="mt-2 line-clamp-2 text-sm leading-[1.5]" style="color: var(--color-on-surface-muted)">
+		{tool.tagline}
+	</p>
+</a>

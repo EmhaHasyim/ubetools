@@ -1,0 +1,26 @@
+{
+	"name": "ubeTools",
+	"short_name": "ubeTools",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#FAFAFA",
+	"theme_color": "#2563EB",
+	"icons": [
+		{
+			"src": "/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/logo-512.avif",
+			"sizes": "512x512",
+			"type": "image/avif"
+		},
+		{
+			"src": "/icon-maskable-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}

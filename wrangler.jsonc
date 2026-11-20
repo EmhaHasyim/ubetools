@@ -1,0 +1,13 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	// Rename to the Worker name on every new site: this becomes the Worker
+	// name, the workers.dev subdomain, and the `*.workers.dev` host.
+	"name": "ubetools",
+	"compatibility_date": "2026-08-28",
+	// ponytail: observability ON for prod logs/traces per Workers best practice
+	"observability": { "enabled": true },
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare",
+	},
+}
