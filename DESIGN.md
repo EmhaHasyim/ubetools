@@ -130,7 +130,7 @@ Built on a strict **4px spacing grid** (`4`, `8`, `12`, `16`, `20`, `24`, `32`, 
     input bar, output panel, then brief usage/FAQ notes below.
 - **Grids:**
   - `ToolCard` grid: `1` column (`<640px`), `2` columns (`640px–1023px`), `3` columns (`>=1024px`), `gap: 16px`.
-  - Thumbnail result: a single best-available card (resolution fallback ordered) with a `16:9` aspect-ratio frame; no variant picker.
+  - Thumbnail result: a card with buttons for every available size; the frame follows the selected image's aspect ratio.
 - **Vertical Rhythm:** `48px–64px` between major page sections; `16px–24px` between related blocks.
 
 ## 5. Elevation & Depth
@@ -151,7 +151,7 @@ Keep radii tight and consistent to preserve a technical, precision feel:
 
 - **Inputs, Buttons, Category Chips:** `8px` (`--radius-md`)
 - **Cards, Output Panels, Error Alerts:** `12px` (`--radius-lg`)
-- **Badges & Small Tags:** `6px` (`--radius-sm`) or `9999px` (`--radius-full`) for status pills only.
+- **Badges & Small Tags:** `6px` (`--radius-sm`) or `9999px` (`--radius-full`) for round indicators only.
 - **Thumbnails / Media Previews:** `8px` (`--radius-md`) inside a `1px` bordered frame.
 
 ## 7. Components
@@ -181,8 +181,7 @@ Keep radii tight and consistent to preserve a technical, precision feel:
 ### ToolCard (`ToolCard.svelte` + `ToolIcon.svelte`)
 
 - Padding `20px`, `radius-lg`, `1px solid var(--color-border)`, background `--color-surface-elevated`.
-- Top row: `ToolIcon` inside a `36x36px` `--color-surface-subtle` rounded square (`radius-md`, stroke `1.75px`)
-  - subtle status pill on the right (`Segera` in muted subtle pill; omit pill once live to reduce noise).
+- Top: `ToolIcon` inside a `36x36px` `--color-surface-subtle` rounded square (`radius-md`, stroke `1.75px`).
 - Body: Tool title (`16px` semibold) + 2-line max description (`14px` muted). Entire card is a single `<a>`.
 
 ### Result & Error States
@@ -208,5 +207,5 @@ Keep radii tight and consistent to preserve a technical, precision feel:
 - **No glassmorphism on content cards** (reserve subtle blur strictly for the sticky header).
 - **No raw hex colors** (`#fff`, `#333`) or arbitrary Tailwind color scales (`bg-blue-500`) inside `.svelte` components; bind to CSS variables in `src/routes/layout.css`.
 - **No marketing fluff** (fake testimonials, bloated feature carousels, or multi-column mega-footers).
-- **No layout shift (CLS)** when loading remote YouTube thumbnails—always set `aspect-video` (`16:9`) containers.
+- **No layout shift (CLS)** when loading remote YouTube thumbnails—reserve the frame with the selected variant's aspect ratio.
 - **No second brand accent color**—status colors (`error`, `success`) are strictly semantic.

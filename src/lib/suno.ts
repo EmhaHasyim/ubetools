@@ -11,6 +11,8 @@ export type SunoMedia = {
 	version?: string
 	tags?: string[]
 	createdAt?: string
+	coverUrl?: string
+	playCount?: number
 }
 export type SunoPlaylist = { name?: string; owner?: string; songCount?: number }
 export type SunoIdSet = { mode: SunoMode; ids: string[] }
@@ -25,17 +27,32 @@ export function formatDuration(seconds: number): string {
 	return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`
 }
 
+export function formatSunoDate(value: unknown): string {
+	if (typeof value !== 'string') return ''
+	const date = new Date(value)
+	return Number.isNaN(date.getTime())
+		? ''
+		: new Intl.DateTimeFormat('id-ID', {
+				timeZone: 'Asia/Jakarta',
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric',
+			}).format(date)
+}
+
 export function songFileName(title: string | undefined, index: number): string {
+	const suffix = ` ${index + 1}`
 	const cleaned = title
-		?.replace(/[\\/:*?"<>|]/g, ' ')
+		?.replace(/[^A-Za-z0-9 ._'-]/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim()
-		.slice(0, 80)
+		.slice(0, 80 - suffix.length)
 	const base = cleaned && /[a-z0-9]/i.test(cleaned) ? cleaned : ''
-	return `${base || String(index + 1).padStart(2, '0')}.m4a`
+	return `${base ? `${base}${suffix}` : String(index + 1).padStart(2, '0')}.m4a`
 }
 
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const COVER_HOSTS = new Set(['cdn2.suno.ai', 'suno.com', 'www.suno.com'])
 const SUNO_HOSTS = new Set(['suno.com', 'www.suno.com'])
 const API = 'https://studio-api.prod.suno.com/api'
 const MAX_LINKS = 50
@@ -74,13 +91,16 @@ async function parseLink(value: string): Promise<{ kind: 'song' | 'playlist'; id
 }
 
 export async function parseSunoRequest(input: string): Promise<SunoRequest | null> {
-	const links = await Promise.all(
-		input
-			.split(/[\s,]+/)
-			.filter(Boolean)
-			.map(parseLink),
-	)
-	if (!links.length || links.length > MAX_LINKS || links.some((link) => !link)) return null
+	const parts = input.split(/[\s,]+/).filter(Boolean)
+	if (!parts.length || parts.length > MAX_LINKS) return null
+
+	const links: Awaited<ReturnType<typeof parseLink>>[] = []
+	// shortcut: five concurrent redirects cap 50 share links at ~80s; upgrade to
+	// a queue with a total deadline if upstream latency needs a harder bound.
+	for (let start = 0; start < parts.length; start += 5) {
+		links.push(...(await Promise.all(parts.slice(start, start + 5).map(parseLink))))
+	}
+	if (links.some((link) => !link)) return null
 
 	const songs = links.filter((link) => link?.kind === 'song').map((link) => link!.id)
 	const playlists = links.filter((link) => link?.kind === 'playlist').map((link) => link!.id)
@@ -132,7 +152,24 @@ function trackInfo(data: unknown): Partial<SunoMedia> {
 	if (typeof meta.duration === 'number' && Number.isFinite(meta.duration))
 		info.duration = meta.duration
 	if (tags?.length) info.tags = tags
+	const cover = text(clip.coverUrl) ?? text(clip.image_url)
+	if (cover && isAllowedCoverUrl(cover)) info.coverUrl = cover
+	if (typeof clip.play_count === 'number' && Number.isFinite(clip.play_count))
+		info.playCount = clip.play_count
 	return info
+}
+
+export function isAllowedCoverUrl(value: string): boolean {
+	try {
+		const url = new URL(value)
+		return (
+			url.protocol === 'https:' &&
+			(COVER_HOSTS.has(url.hostname) || url.hostname.endsWith('.suno.ai')) &&
+			/\.(png|jpe?g|webp)$/i.test(url.pathname)
+		)
+	} catch {
+		return false
+	}
 }
 
 function playlistInfo(data: unknown): SunoPlaylist | undefined {

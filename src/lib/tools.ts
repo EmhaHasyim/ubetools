@@ -1,6 +1,5 @@
 export type ToolTone = 'youtube' | 'tags' | 'suno'
 export type ToolCategory = 'YouTube' | 'Audio'
-export type ToolStatus = 'soon' | 'live'
 
 export type Tool = {
 	slug: string
@@ -9,7 +8,6 @@ export type Tool = {
 	description: string
 	category: ToolCategory
 	tone: ToolTone
-	status: ToolStatus
 	placeholder: string
 	capabilities: string[]
 }
@@ -18,48 +16,45 @@ export const tools: Tool[] = [
 	{
 		slug: 'youtube-thumbnail',
 		name: 'YouTube Thumbnail Downloader',
-		tagline: 'Thumbnail resolusi tertinggi, satu klik.',
+		tagline: 'Thumbnail terbaik, siap diunduh.',
 		description:
-			'Ambil thumbnail sebuah video YouTube dalam resolusi tertinggi yang tersedia, lalu simpan sebagai gambar.',
+			'Tempel link YouTube dan ambil thumbnail resolusi tertinggi yang tersedia dalam satu klik.',
 		category: 'YouTube',
 		tone: 'youtube',
-		status: 'live',
 		placeholder: 'https://www.youtube.com/watch?v=...',
 		capabilities: [
 			'Mendeteksi ID video dari link yang ditempel.',
-			'Memilih otomatis ukuran thumbnail terbaik yang tersedia.',
+			'Menampilkan semua ukuran thumbnail yang tersedia untuk dipilih.',
 			'Mengunduh gambar tanpa menyimpan link kamu.',
 		],
 	},
 	{
 		slug: 'youtube-tags',
 		name: 'YouTube Tag Extractor',
-		tagline: 'Lihat tag di balik video dan channel.',
+		tagline: 'Tag video atau channel, mudah disalin.',
 		description:
-			'Baca tag dan keyword yang dipasang pembuat video atau channel, lalu salin semuanya sekaligus.',
+			'Tempel link YouTube untuk melihat tag dan keyword publik, lalu salin semuanya sekaligus.',
 		category: 'YouTube',
 		tone: 'tags',
-		status: 'live',
 		placeholder: 'https://www.youtube.com/watch?v=... atau https://www.youtube.com/@channel',
 		capabilities: [
 			'Membaca metadata publik dari halaman video atau channel.',
 			'Menampilkan tag sebagai daftar yang bisa disalin sekaligus.',
-			'Menandai konten yang menyembunyikan tag.',
+			'Menampilkan tag termasuk penanda bila konten menyembunyikannya.',
 		],
 	},
 	{
 		slug: 'suno-music',
 		name: 'Suno Music Downloader',
-		tagline: 'Simpan M4A publik dari Suno, lengkap dengan detail lagu.',
+		tagline: 'M4A Suno dengan detail lagu, tanpa install.',
 		description:
-			'Tempel satu lagu, beberapa lagu, atau playlist Suno lalu unduh M4A publiknya. Batch dan playlist dikemas dalam satu ZIP.',
+			'Tempel lagu atau playlist Suno, lihat cover dan detailnya, lalu unduh M4A publiknya. Batch dan playlist dikemas dalam satu ZIP.',
 		category: 'Audio',
 		tone: 'suno',
-		status: 'live',
 		placeholder: 'https://suno.com/song/... (satu per baris untuk beberapa lagu)',
 		capabilities: [
 			'Mendeteksi mode single, batch, atau playlist dari link yang ditempel.',
-			'Menampilkan judul, durasi, dan detail lagu sebelum mengunduh M4A.',
+			'Menampilkan cover, judul, durasi, dan detail lagu sebelum mengunduh M4A.',
 			'Mengunduh banyak lagu sebagai satu ZIP bernomor, maksimal 50 link.',
 		],
 	},

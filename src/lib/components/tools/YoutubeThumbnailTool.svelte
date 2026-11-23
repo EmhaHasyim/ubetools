@@ -15,8 +15,12 @@
 	let loading = $state(false)
 	let errorMessage = $state('')
 	let copied = $state('')
+	let copyTimer: ReturnType<typeof setTimeout> | undefined
 	let result = $state<{ videoId: string; thumbnails: Thumbnail[] } | null>(null)
-	const best = $derived(result?.thumbnails[0] ?? null)
+	let selectedVariant = $state<string | null>(null)
+	const selected = $derived(
+		result?.thumbnails.find((item) => item.variant === selectedVariant) ?? result?.thumbnails[0] ?? null,
+	)
 
 	const submitLabel = $derived(loading ? 'Memproses...' : 'Ambil thumbnail')
 
@@ -27,7 +31,9 @@
 		loading = true
 		errorMessage = ''
 		copied = ''
+		clearTimeout(copyTimer)
 		result = null
+		selectedVariant = null
 
 		try {
 			const response = await eden.api.tools['youtube-thumbnail'].post({ url: url.trim() })
@@ -49,8 +55,9 @@
 	async function copy(thumbnail: Thumbnail) {
 		try {
 			await navigator.clipboard.writeText(thumbnail.url)
+			clearTimeout(copyTimer)
 			copied = thumbnail.variant
-			setTimeout(() => {
+			copyTimer = setTimeout(() => {
 				if (copied === thumbnail.variant) copied = ''
 			}, 2000)
 		} catch {
@@ -81,6 +88,18 @@
 	Mendukung link watch, youtu.be, Shorts, dan ID video 11 karakter.
 </p>
 
+{#if loading}
+	<div class="card mt-6 p-5" role="status" aria-live="polite">
+		<div class="flex items-center gap-3">
+			<span class="loading-ring" aria-hidden="true"></span>
+			<div>
+				<p class="text-sm font-medium" style="color: var(--color-ink)">Mengambil thumbnail...</p>
+				<p class="mt-1 text-xs" style="color: var(--color-muted)">Memeriksa ukuran yang tersedia.</p>
+			</div>
+		</div>
+	</div>
+{/if}
+
 {#if errorMessage}
 	<div class="alert-error mt-6" role="alert">
 		<p class="text-sm font-medium" style="color: var(--color-error)">Terjadi kesalahan</p>
@@ -90,41 +109,54 @@
 	</div>
 {/if}
 
-{#if best && result}
+{#if selected && result}
 	<article class="card mt-6 p-3">
 		<div
-			class="aspect-video w-full overflow-hidden rounded-md"
-			style="background: var(--color-paper-3)"
+			class="w-full overflow-hidden rounded-md"
+			style="background: var(--color-paper-3); aspect-ratio: {selected.width}/{selected.height}"
 		>
 			<img
-				src={best.url}
-				alt={`Thumbnail ${best.label} ${best.width}×${best.height}`}
-				width={best.width}
-				height={best.height}
+				src={selected.url}
+				alt={`Thumbnail ${selected.label} ${selected.width}×${selected.height}`}
+				width={selected.width}
+				height={selected.height}
 				fetchpriority="high"
 				decoding="async"
 				class="h-full w-full object-contain"
 			/>
 		</div>
-		<p class="label-mono mt-3">{best.label} · {best.width}×{best.height}</p>
+		<p class="label-mono mt-3">{selected.label} · {selected.width}×{selected.height}</p>
+		<div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Pilih ukuran thumbnail">
+			{#each result.thumbnails as thumbnail (thumbnail.variant)}
+				<button
+					type="button"
+					class="btn-secondary"
+					class:is-active={selected.variant === thumbnail.variant}
+					aria-pressed={selected.variant === thumbnail.variant}
+					onclick={() => (selectedVariant = thumbnail.variant)}
+				>
+					{thumbnail.label}
+				</button>
+			{/each}
+		</div>
 		<div class="mt-3 flex flex-wrap items-center gap-2">
 			<a
 				class="btn-primary inline-flex h-10 items-center px-4"
-				href={downloadHref(result.videoId, best.variant)}
+				href={downloadHref(result.videoId, selected.variant)}
 			>
 				Unduh
 			</a>
 			<button
 				type="button"
 				class="btn-secondary"
-				class:is-copied={copied === best.variant}
-				onclick={() => copy(best)}
+				class:is-copied={copied === selected.variant}
+				onclick={() => copy(selected)}
 			>
-				{copied === best.variant ? 'Tersalin' : 'Salin URL'}
+				{copied === selected.variant ? 'Tersalin' : 'Salin URL'}
 			</button>
 			<a
 				class="footer-link text-xs"
-				href={best.url}
+				href={selected.url}
 				target="_blank"
 				rel="noopener noreferrer"
 			>

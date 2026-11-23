@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import {
 	formatDuration,
+	formatSunoDate,
+	isAllowedCoverUrl,
 	parseSunoMedia,
 	parseSunoRequest,
 	resolveSunoTargets,
@@ -47,6 +49,29 @@ describe('parseSunoRequest', () => {
 			mode: 'single',
 			ids: [SONG_A],
 		})
+	})
+
+	test('bounds 50 share-link redirects to five parallel requests', async () => {
+		let active = 0
+		let peak = 0
+		vi.stubGlobal('fetch', async () => {
+			active += 1
+			peak = Math.max(peak, active)
+			await new Promise((resolve) => setTimeout(resolve, 0))
+			active -= 1
+			return new Response(null, {
+				status: 302,
+				headers: { location: `https://suno.com/song/${SONG_A}` },
+			})
+		})
+
+		const links = Array.from(
+			{ length: 50 },
+			(_, i) => `https://suno.com/s/${'a'.repeat(8 + (i % 17))}`,
+		)
+		expect(await parseSunoRequest(links.join('\n'))).not.toBeNull()
+		expect(peak).toBeGreaterThan(1)
+		expect(peak).toBeLessThanOrEqual(5)
 	})
 
 	test('parses multiple song links in order', async () => {
@@ -124,6 +149,29 @@ describe('parseSunoMedia', () => {
 		expect(await parseSunoMedia(response(clip(), false, 404), SONG_A)).toBeNull()
 	})
 
+	test('keeps the public cover URL and play count', async () => {
+		const payload = {
+			...clip(),
+			coverUrl: 'https://cdn2.suno.ai/image_large_123.png',
+			image_url: 'https://cdn2.suno.ai/image_large_456.png',
+			play_count: 42,
+		}
+		const result = await parseSunoMedia(response(payload), SONG_A)
+		expect(result?.coverUrl).toBe('https://cdn2.suno.ai/image_large_123.png')
+		expect(result?.playCount).toBe(42)
+	})
+
+	test('formats clip dates in the Indonesia time zone', () => {
+		expect(formatSunoDate('2026-11-20T17:30:00.000Z')).toBe('21 Nov 2026')
+		expect(formatSunoDate('not a date')).toBe('')
+	})
+
+	test('allows only allowlisted image hosts', () => {
+		expect(isAllowedCoverUrl('https://cdn2.suno.ai/image_large_123.png')).toBe(true)
+		expect(isAllowedCoverUrl('https://cdn2.suno.ai/image_large_123.gif')).toBe(false)
+		expect(isAllowedCoverUrl('https://evil.test/a.png')).toBe(false)
+	})
+
 	test('keeps the public clip details', async () => {
 		const payload = {
 			...clip(),
@@ -152,11 +200,22 @@ describe('parseSunoMedia', () => {
 
 	test('uses a sanitized song title with an m4a extension', () => {
 		expect(songFileName('Let the Silence Take Up Space', 0)).toBe(
-			'Let the Silence Take Up Space.m4a',
+			'Let the Silence Take Up Space 1.m4a',
 		)
-		expect(songFileName('A/B: "C"', 1)).toBe('A B C.m4a')
+		expect(songFileName('A/B: "C"', 1)).toBe('A B C 2.m4a')
 		expect(songFileName('  ...  ', 2)).toBe('03.m4a')
 		expect(songFileName(undefined, 7)).toBe('08.m4a')
+	})
+
+	test('names files with ASCII only so the download token can be encoded', () => {
+		const name = songFileName('A😀', 0)
+		expect(name).toBe('A 1.m4a')
+		expect(() => btoa(JSON.stringify({ files: [{ name }] }))).not.toThrow()
+	})
+
+	test('keeps download names unique when titles repeat', () => {
+		const names = [0, 1, 2].map((index) => songFileName('Same Song', index))
+		expect(new Set(names).size).toBe(names.length)
 	})
 
 	test('accepts a percent-encoded CloudFront URL', async () => {

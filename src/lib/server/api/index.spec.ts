@@ -62,6 +62,25 @@ afterEach(() => {
 })
 
 describe('API response headers', () => {
+	test('counts schema-invalid requests against the rate limit', async () => {
+		let response: Response | undefined
+		for (let attempt = 0; attempt < 31; attempt += 1)
+			response = await app.handle(
+				withCf(
+					new Request('http://localhost/api/tools/youtube-thumbnail', {
+						method: 'POST',
+						headers: { 'content-type': 'application/json', 'cf-connecting-ip': '10.9.9.99' },
+						body: JSON.stringify({}),
+					}),
+				),
+			)
+
+		expect(response?.status).toBe(429)
+		expect(response?.headers.get('content-type')).toBe('application/problem+json')
+		expect(response?.headers.get('retry-after')).toBe('60')
+		expect(response?.headers.get('x-content-type-options')).toBe('nosniff')
+	})
+
 	test('sets security headers on validation errors', async () => {
 		const result = await app.handle(
 			withCf(

@@ -29,14 +29,9 @@
 
 		<div class="mt-6 grid gap-8 lg:grid-cols-3 lg:items-end">
 			<div class="lg:col-span-2">
-				<div class="flex items-center gap-3">
-					<span class="icon-tile">
-						<ToolIcon tone={data.tool.tone} size={20} />
-					</span>
-					{#if data.tool.status === 'soon'}
-						<span class="badge status-pill">Segera</span>
-					{/if}
-				</div>
+				<span class="icon-tile">
+					<ToolIcon tone={data.tool.tone} size={20} />
+				</span>
 				<h1 id="tool-heading" class="display-title mt-4">{data.tool.name}</h1>
 			</div>
 			<p class="lede">{data.tool.description}</p>
@@ -50,37 +45,12 @@
 					<YoutubeTagsTool placeholder={data.tool.placeholder} />
 				{:else if data.tool.slug === 'suno-music'}
 					<SunoMusicTool placeholder={data.tool.placeholder} />
-				{:else}
-					<div class="command-bar mt-2">
-						<label for="tool-url" class="sr-only">Tempel link</label>
-						<input
-							id="tool-url"
-							type="url"
-							disabled
-							placeholder={data.tool.placeholder}
-							aria-describedby="tool-status"
-						/>
-						<button type="button" class="btn-primary" disabled>Segera</button>
-					</div>
-					<p id="tool-status" class="mt-2 text-xs">
-						Input dinonaktifkan sampai endpoint tool aktif.
-					</p>
-
-					<div class="empty-state mt-6">
-						<p class="font-medium">Hasil akan muncul di sini.</p>
-						<p class="mt-1 text-sm">
-							Tempel link {data.tool.category === 'Audio' ? 'track Suno' : 'video YouTube'} untuk melihat
-							{data.tool.tone === 'tags' ? 'tag' : data.tool.tone === 'suno' ? 'audio' : 'thumbnail'}.
-						</p>
-					</div>
 				{/if}
 			</div>
 
 			<div class="grid gap-4">
 				<div class="card p-5">
-					<h2 class="label-mono">
-						{data.tool.status === 'soon' ? 'Nanti bisa' : 'Yang bisa dilakukan'}
-					</h2>
+					<h2 class="label-mono">Yang bisa dilakukan</h2>
 					<ul class="mt-3 space-y-2 text-sm">
 						{#each data.tool.capabilities as item (item)}
 							<li class="flex gap-2">
@@ -107,13 +77,8 @@
 				<div class="card p-5">
 					<h2 class="label-mono">Catatan</h2>
 					<p class="mt-3 text-sm leading-[1.5]">
-						Tool ini hanya bekerja dengan konten publik. Tidak ada akun, tidak ada riwayat, dan link
-						tidak disimpan.
-					</p>
-					<p class="mt-2 text-sm leading-[1.5]">
-						Status rilis: <span class="status-value">
-							{data.tool.status === 'soon' ? 'Segera' : 'Aktif'}
-						</span>.
+						Tool ini hanya bekerja dengan konten publik. Hasilnya ditampilkan segera setelah tersedia,
+						tanpa akun, tanpa riwayat, dan tanpa menyimpan link.
 					</p>
 				</div>
 			</div>

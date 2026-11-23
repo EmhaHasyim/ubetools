@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { eden } from '#lib/client/client.ts'
+	import { formatSunoDate } from '#lib/suno.ts'
 
 	type SunoTrack = {
 		id: string
@@ -9,6 +10,8 @@
 		version?: string
 		tags: string[]
 		createdAt?: string
+		coverUrl?: string
+		playCount?: number
 	}
 
 	type SunoResult = {
@@ -21,11 +24,6 @@
 	}
 
 	let { placeholder }: { placeholder: string } = $props()
-
-	function shortDate(value: unknown): string {
-		if (value instanceof Date) return value.toISOString().slice(0, 10)
-		return typeof value === 'string' ? value.slice(0, 10) : ''
-	}
 
 	type SunoMode = 'single' | 'batch' | 'playlist'
 
@@ -58,6 +56,7 @@
 
 	const activeMode = $derived(modes.find((item) => item.mode === mode)!)
 	const submitLabel = $derived(loading ? 'Memproses...' : 'Siapkan unduhan')
+	const downloadLabel = $derived(result?.mode === 'single' ? 'Unduh' : 'Unduh ZIP')
 	const modeLabel = $derived(
 		result?.mode === 'single' ? 'Satu lagu' : result?.mode === 'playlist' ? 'Playlist' : 'Beberapa lagu',
 	)
@@ -84,12 +83,11 @@
 	}
 </script>
 
-<div class="mt-6 grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup" aria-label="Mode unduhan">
+<div class="mt-6 grid grid-cols-3 gap-2 sm:gap-3" role="group" aria-label="Mode unduhan">
 	{#each modes as item (item.mode)}
 		<button
 			type="button"
-			role="radio"
-			aria-checked={mode === item.mode}
+			aria-pressed={mode === item.mode}
 			aria-label={`${item.label}: ${item.description}`}
 			class="card p-3 text-left sm:p-4"
 			style="border-color: {mode === item.mode
@@ -130,6 +128,18 @@
 	unduh. Maksimal 50 lagu, M4A publik tanpa konversi.
 </p>
 
+{#if loading}
+	<div class="card mt-6 p-5" role="status" aria-live="polite">
+		<div class="flex items-center gap-3">
+			<span class="loading-ring" aria-hidden="true"></span>
+			<div>
+				<p class="text-sm font-medium" style="color: var(--color-ink)">Menyiapkan unduhan...</p>
+				<p class="mt-1 text-xs" style="color: var(--color-muted)">Mengambil detail lagu dari Suno.</p>
+			</div>
+		</div>
+	</div>
+{/if}
+
 {#if errorMessage}
 	<div class="alert-error mt-6" role="alert">
 		<p class="text-sm font-medium" style="color: var(--color-error)">Terjadi kesalahan</p>
@@ -146,16 +156,15 @@
 				{modeLabel}
 				{#if result.skipped}
 					<span class="block text-xs" style="color: var(--color-muted)">
-						{result.skipped} lagu dilewati karena audio tidak publik.
+						{result.skipped} lagu tidak bisa diambil.
 					</span>
 				{/if}
 			</p>
 			<a
 				class="btn-primary"
 				href={result.downloadUrl}
-				download={`${result.tracks[0]?.title ?? 'lagu'}.m4a`}
 			>
-				{result.mode === 'single' ? 'Unduh M4A' : 'Unduh ZIP'}
+				{downloadLabel}
 			</a>
 		</div>
 
@@ -180,8 +189,25 @@
 		<ul class="mt-4 space-y-3">
 			{#each result.tracks as track, index (track.id + '-' + index)}
 				<li class="rounded-lg p-4" style="background: var(--color-paper-3)">
-					<div class="flex items-start justify-between gap-3">
-						<div class="min-w-0">
+					<div class="flex items-start gap-3">
+						<div
+							class="flex shrink-0 items-center justify-center overflow-hidden rounded-lg"
+							style="background: var(--color-surface-subtle); width: {result.mode === 'single'
+								? '6rem'
+								: '3.5rem'}; aspect-ratio: 1"
+						>
+							{#if track.coverUrl}
+								<img
+									src={track.coverUrl}
+									alt={`Cover ${track.title ?? `lagu ${index + 1}`}`}
+									class="h-full w-full object-cover"
+									loading="lazy"
+								/>
+							{:else}
+								<span aria-hidden="true" style="color: var(--color-muted)">♪</span>
+							{/if}
+						</div>
+						<div class="min-w-0 flex-1">
 							<p
 								class="truncate text-sm font-semibold"
 								style="color: var(--color-ink)"
@@ -192,7 +218,10 @@
 								{[
 									track.artist,
 									track.version,
-									shortDate(track.createdAt),
+									formatSunoDate(track.createdAt),
+									track.playCount !== undefined
+										? `${track.playCount.toLocaleString('id-ID')} putaran`
+										: null,
 								]
 									.filter(Boolean)
 									.join(' · ') || 'Suno'}

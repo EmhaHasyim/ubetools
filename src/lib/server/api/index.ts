@@ -114,6 +114,12 @@ const variantSchema = t.Union([
 
 // API mounted under /api by the SvelteKit boundary route. Add routes here.
 export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
+	// Runs before body validation so malformed requests still use quota.
+	.onTransform(({ request, set }) => {
+		if (!request.url.includes('/api/tools/')) return
+		const quotaError = checkQuota(request, set)
+		if (quotaError) throw quotaError
+	})
 	.use(
 		openapi({
 			enabled: false,
@@ -156,10 +162,7 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				502: problemSchema,
 			},
 		},
-		async ({ body, request, set }) => {
-			const quotaError = checkQuota(request, set)
-			if (quotaError) return quotaError
-
+		async ({ body }) => {
 			const videoId = parseVideoId(body.url)
 			if (!videoId)
 				return apiProblem(
@@ -225,10 +228,7 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				502: problemSchema,
 			},
 		},
-		async ({ body, request, set }) => {
-			const quotaError = checkQuota(request, set)
-			if (quotaError) return quotaError
-
+		async ({ body }) => {
 			const target = parseYouTubeTarget(body.url)
 			if (!target)
 				return apiProblem(
@@ -298,6 +298,8 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 							version: t.Optional(t.String()),
 							tags: t.Array(t.String()),
 							createdAt: t.Optional(t.String()),
+							coverUrl: t.Optional(t.String()),
+							playCount: t.Optional(t.Number()),
 						}),
 					),
 					totalDuration: t.Optional(t.String()),
@@ -315,9 +317,7 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				502: problemSchema,
 			},
 		},
-		async ({ body, request, set }) => {
-			const quotaError = checkQuota(request, set)
-			if (quotaError) return quotaError
+		async ({ body }) => {
 			const parsed = await parseSunoRequest(body.input)
 			if (!parsed) return sunoInvalid()
 
@@ -355,6 +355,8 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				...(target.duration !== undefined ? { duration: formatDuration(target.duration) } : {}),
 				...(target.version ? { version: target.version } : {}),
 				...(target.createdAt ? { createdAt: target.createdAt } : {}),
+				...(target.coverUrl ? { coverUrl: target.coverUrl } : {}),
+				...(target.playCount !== undefined ? { playCount: target.playCount } : {}),
 				tags: target.tags ?? [],
 			}))
 			const total = targets.reduce((sum, item) => sum + (item.duration ?? 0), 0)
@@ -376,10 +378,7 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 			query: t.Object({ token: t.String({ minLength: 1, maxLength: 32000 }) }),
 			response: { 400: problemSchema, 429: problemSchema, 502: problemSchema },
 		},
-		async ({ query, request, set }) => {
-			const quotaError = checkQuota(request, set)
-			if (quotaError) return quotaError
-
+		async ({ query }) => {
 			const token = decodeSunoToken(query.token)
 			if (!token) return sunoInvalid()
 
@@ -447,10 +446,7 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 			detail: { summary: 'Download a YouTube thumbnail as an attachment' },
 			query: t.Object({ id: t.String(), variant: variantSchema }),
 		},
-		async ({ query, request, set }) => {
-			const quotaError = checkQuota(request, set)
-			if (quotaError) return quotaError
-
+		async ({ query }) => {
 			const videoId = isVideoId(query.id) ? query.id : null
 			if (!videoId)
 				return apiProblem(

@@ -98,8 +98,8 @@ describe('POST /api/tools/suno-music', () => {
 		const data = (await result.json()) as Record<string, unknown>
 		expect(data.mode).toBe('batch')
 		const tokenQuery = String(data.downloadUrl).split('token=')[1]!
-		expect(atob(tokenQuery)).toContain('Let the Silence Take Up Space.m4a')
-		expect(atob(tokenQuery)).toContain('Neon Rain.m4a')
+		expect(atob(tokenQuery)).toContain('Let the Silence Take Up Space 1.m4a')
+		expect(atob(tokenQuery)).toContain('Neon Rain 2.m4a')
 		expect(atob(tokenQuery)).toContain('"encrypted":true')
 	})
 
@@ -134,8 +134,8 @@ describe('POST /api/tools/suno-music', () => {
 		}
 		expect(saved.files.map((file) => file.id)).toEqual([SONG_A, SONG_B])
 		expect(saved.files.map((file) => file.name)).toEqual([
-			'Let the Silence Take Up Space.m4a',
-			'Neon Rain.m4a',
+			'Let the Silence Take Up Space 1.m4a',
+			'Neon Rain 2.m4a',
 		])
 	})
 

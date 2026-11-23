@@ -66,6 +66,18 @@
 	Mendukung link video dan channel publik, termasuk youtu.be dan /@channel.
 </p>
 
+{#if loading}
+	<div class="card mt-6 p-5" role="status" aria-live="polite">
+		<div class="flex items-center gap-3">
+			<span class="loading-ring" aria-hidden="true"></span>
+			<div>
+				<p class="text-sm font-medium" style="color: var(--color-ink)">Mengambil tag...</p>
+				<p class="mt-1 text-xs" style="color: var(--color-muted)">Membaca metadata halaman publik.</p>
+			</div>
+		</div>
+	</div>
+{/if}
+
 {#if errorMessage}
 	<div class="alert-error mt-6" role="alert">
 		<p class="text-sm font-medium" style="color: var(--color-error)">Terjadi kesalahan</p>
@@ -79,6 +91,7 @@
 	<div class="card mt-6 p-5">
 		<div class="flex flex-wrap items-center justify-between gap-3">
 			<p class="text-sm font-medium" style="color: var(--color-ink)">
+				<span class="badge">{result.kind === 'channel' ? 'Channel' : 'Video'}</span>
 				{result.state === 'hidden'
 					? 'Tidak ada tag yang terlihat pada halaman ini.'
 					: `${result.tags.length} tag ditemukan`}
