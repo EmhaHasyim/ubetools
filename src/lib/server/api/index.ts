@@ -4,7 +4,14 @@ import { zipSync } from 'fflate'
 import pkg from '../../../../package.json' with { type: 'json' }
 import { isVideoId, parseVideoId, thumbnailSizes, thumbnailUrl } from '#lib/youtube.ts'
 import { parseWatchPageTags, parseYouTubeTarget } from '#lib/youtube-tags.ts'
-import { parseSunoMedia, parseSunoRequest, resolveSunoTargets } from '#lib/suno.ts'
+import {
+	formatDuration,
+	parseSunoMedia,
+	parseSunoRequest,
+	resolveSunoTargets,
+	songFileName,
+} from '#lib/suno.ts'
+import { fetchDecryptedSunoAudio } from '#lib/server/suno-rights.ts'
 import { apiProblem } from '#lib/server/problem.ts'
 import { clientIp, rateLimiter } from '#lib/server/rate-limit.ts'
 
@@ -56,7 +63,7 @@ function sunoInvalid() {
 	return apiProblem(400, 'invalid-suno-url', 'Link tidak valid', sunoProblemDetail)
 }
 
-type SunoDownloadFile = { id: string; name: string }
+type SunoDownloadFile = { id: string; name: string; encrypted?: boolean }
 
 type SunoDownloadToken = { files: SunoDownloadFile[]; zip: boolean }
 
@@ -70,9 +77,25 @@ function decodeSunoToken(token: string): SunoDownloadToken | null {
 		const data: unknown = JSON.parse(atob(token.replace(/-/g, '+').replace(/_/g, '/')))
 		const files = (data as { files?: unknown })?.files
 		if (!Array.isArray(files) || files.length === 0 || files.length > 50) return null
-		if (!files.every((file) => typeof file?.id === 'string' && typeof file?.name === 'string'))
+		if (
+			!files.every(
+				(file) =>
+					typeof file?.id === 'string' &&
+					typeof file?.name === 'string' &&
+					(file?.encrypted === undefined || typeof file?.encrypted === 'boolean'),
+			)
+		)
 			return null
-		if (!files.every((file) => /^\d{2}\.m4a$/.test(file.name))) return null
+		if (
+			!files.every(
+				(file) =>
+					file.name.length > 4 &&
+					file.name.length <= 84 &&
+					file.name.endsWith('.m4a') &&
+					/^[\p{L}\p{N} ._'-]+$/u.test(file.name.slice(0, -4)),
+			)
+		)
+			return null
 		if (new Set(files.map((file) => file.name)).size !== files.length) return null
 		if (!files.every((file) => UUID_V4.test(file.id))) return null
 		return { files, zip: (data as { zip?: unknown }).zip === true }
@@ -266,6 +289,25 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				200: t.Object({
 					downloadUrl: t.String(),
 					mode: t.Union([t.Literal('single'), t.Literal('batch'), t.Literal('playlist')]),
+					tracks: t.Array(
+						t.Object({
+							id: t.String(),
+							title: t.Optional(t.String()),
+							artist: t.Optional(t.String()),
+							duration: t.Optional(t.String()),
+							version: t.Optional(t.String()),
+							tags: t.Array(t.String()),
+							createdAt: t.Optional(t.String()),
+						}),
+					),
+					totalDuration: t.Optional(t.String()),
+					playlist: t.Optional(
+						t.Object({
+							name: t.Optional(t.String()),
+							owner: t.Optional(t.String()),
+							songCount: t.Optional(t.Number()),
+						}),
+					),
 					skipped: t.Optional(t.Number()),
 				}),
 				400: problemSchema,
@@ -276,10 +318,10 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 		async ({ body, request, set }) => {
 			const quotaError = checkQuota(request, set)
 			if (quotaError) return quotaError
-			const parsed = parseSunoRequest(body.input)
+			const parsed = await parseSunoRequest(body.input)
 			if (!parsed) return sunoInvalid()
 
-			const { targets, skipped } = await resolveSunoTargets(parsed)
+			const { targets, skipped, playlist } = await resolveSunoTargets(parsed)
 			if (!targets.length)
 				return apiProblem(
 					502,
@@ -289,9 +331,10 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				)
 
 			const albumId = parsed.mode === 'playlist' ? parsed.ids[0]! : null
-			const files: SunoDownloadFile[] = targets.map((_target, index) => ({
-				id: albumId ?? parsed.ids[index]!,
-				name: `${String(index + 1).padStart(2, '0')}.m4a`,
+			const files: SunoDownloadFile[] = targets.map((target, index) => ({
+				id: target.id ?? albumId ?? parsed.ids[index]!,
+				name: songFileName(target.title, index),
+				...(target.encrypted ? { encrypted: true } : {}),
 			}))
 			const token: SunoDownloadToken = { files, zip: parsed.mode !== 'single' }
 			const encodedToken = btoa(JSON.stringify(token))
@@ -305,8 +348,25 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 					'Gagal menyiapkan unduhan',
 					'Link audio terlalu panjang. Coba lebih sedikit lagu.',
 				)
+			const tracks = targets.map((target) => ({
+				id: target.id,
+				...(target.title ? { title: target.title } : {}),
+				...(target.artist ? { artist: target.artist } : {}),
+				...(target.duration !== undefined ? { duration: formatDuration(target.duration) } : {}),
+				...(target.version ? { version: target.version } : {}),
+				...(target.createdAt ? { createdAt: target.createdAt } : {}),
+				tags: target.tags ?? [],
+			}))
+			const total = targets.reduce((sum, item) => sum + (item.duration ?? 0), 0)
 			const downloadUrl = `/api/tools/suno-music/download?token=${encodedToken}`
-			return { downloadUrl, mode: parsed.mode, ...(skipped ? { skipped } : {}) }
+			return {
+				downloadUrl,
+				mode: parsed.mode,
+				tracks,
+				...(total ? { totalDuration: formatDuration(total) } : {}),
+				...(playlist ? { playlist } : {}),
+				...(skipped ? { skipped } : {}),
+			}
 		},
 	)
 	.get(
@@ -329,39 +389,24 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 			for (const file of token.files) {
 				const remaining = deadline - Date.now()
 				if (remaining <= 0 || total >= MAX_SUNO_BYTES) break
-				let bytes: ArrayBuffer
+				let bytes: Uint8Array | null
 				try {
 					const media = await fetch(`https://studio-api.prod.suno.com/api/clip/${file.id}`, {
 						signal: AbortSignal.timeout(Math.min(8_000, remaining)),
 					})
-					const fresh = await parseSunoMedia(media)
+					const fresh = await parseSunoMedia(media, file.id)
 					if (!fresh) continue
-					const upstream = await fetch(fresh.url, {
-						signal: AbortSignal.timeout(Math.max(1, Math.min(8_000, deadline - Date.now()))),
-					})
-					const contentType = upstream.headers.get('content-type')?.split(';')[0]?.trim()
-					const contentLength = upstream.headers.get('content-length')
-					const length = contentLength ? Number(contentLength) : 0
-					if (
-						!upstream.ok ||
-						!upstream.body ||
-						(contentLength &&
-							(!Number.isFinite(length) || length > Math.min(25_000_000, MAX_SUNO_BYTES - total)))
+					if (fresh.encrypted !== (file.encrypted ?? false)) continue
+					bytes = await fetchDecryptedSunoAudio(
+						fresh,
+						AbortSignal.timeout(Math.max(1, Math.min(30_000, deadline - Date.now()))),
 					)
-						continue
-					if (
-						contentType !== 'application/octet-stream' &&
-						contentType !== 'video/mp4' &&
-						!contentType?.startsWith('audio/')
-					)
-						continue
-					bytes = await upstream.arrayBuffer()
-					if (bytes.byteLength > Math.min(25_000_000, MAX_SUNO_BYTES - total)) continue
+					if (!bytes || bytes.byteLength > Math.min(25_000_000, MAX_SUNO_BYTES - total)) continue
 				} catch {
 					continue
 				}
 				total += bytes.byteLength
-				chunks[file.name] = new Uint8Array(bytes)
+				chunks[file.name] = bytes
 			}
 			if (!Object.keys(chunks).length)
 				return apiProblem(

@@ -15,12 +15,12 @@
 			<ToolIcon tone={tool.tone} size={20} />
 		</span>
 		{#if tool.status === 'soon'}
-			<span class="badge">Segera</span>
+			<span class="badge status-pill">Segera</span>
 		{/if}
 	</div>
 
 	<h3 class="mt-4 text-base leading-[1.35] font-semibold tracking-[-0.01em]">{tool.name}</h3>
-	<p class="mt-2 line-clamp-2 text-sm leading-[1.5]" style="color: var(--color-on-surface-muted)">
+	<p class="mt-2 line-clamp-2 text-sm leading-[1.5]" style="color: var(--color-muted)">
 		{tool.tagline}
 	</p>
 </a>

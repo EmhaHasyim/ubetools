@@ -62,14 +62,14 @@
 	/>
 	<button type="submit" class="btn-primary min-w-36" disabled={loading}>{submitLabel}</button>
 </form>
-<p id="youtube-tags-hint" class="mt-2 text-xs" style="color: var(--color-on-surface-muted)">
+<p id="youtube-tags-hint" class="mt-2 text-xs" style="color: var(--color-muted)">
 	Mendukung link video dan channel publik, termasuk youtu.be dan /@channel.
 </p>
 
 {#if errorMessage}
 	<div class="alert-error mt-6" role="alert">
 		<p class="text-sm font-medium" style="color: var(--color-error)">Terjadi kesalahan</p>
-		<p class="mt-1 text-sm leading-[1.5]" style="color: var(--color-on-surface-muted)">
+		<p class="mt-1 text-sm leading-[1.5]" style="color: var(--color-muted)">
 			{errorMessage}
 		</p>
 	</div>
@@ -78,7 +78,7 @@
 {#if result}
 	<div class="card mt-6 p-5">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<p class="text-sm font-medium" style="color: var(--color-on-surface)">
+			<p class="text-sm font-medium" style="color: var(--color-ink)">
 				{result.state === 'hidden'
 					? 'Tidak ada tag yang terlihat pada halaman ini.'
 					: `${result.tags.length} tag ditemukan`}
@@ -99,7 +99,7 @@
 	</div>
 {:else if !loading && !errorMessage}
 	<div class="empty-state mt-6">
-		<p class="text-[15px] font-medium" style="color: var(--color-on-surface)">
+		<p class="text-base font-medium sm:text-[15px]" style="color: var(--color-ink)">
 			Hasil akan muncul di sini.
 		</p>
 		<p class="mt-1 text-sm">

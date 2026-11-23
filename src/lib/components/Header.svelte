@@ -19,29 +19,24 @@
 	}
 </script>
 
-<header
-	class="sticky top-0 z-40 border-b backdrop-blur-sm"
-	style="background: color-mix(in srgb, var(--color-surface) 90%, transparent); border-color: var(--color-border)"
->
-	<div class="mx-auto flex h-[60px] w-full max-w-5xl items-center justify-between px-4 sm:px-6">
-		<a href="/" class="flex items-center gap-2" aria-label="ubeTools — beranda">
-			<img src="/logo-64.png" alt="" width="30" height="30" class="rounded-md" />
-			<span
-				class="text-base font-semibold tracking-tight"
-				style="color: var(--color-on-surface)"
-			>
-				ubeTools
-			</span>
+<header class="nav">
+	<a class="skip-link" href="#main">
+		Lewati ke konten <span class="visually-hidden">Skip to content</span>
+	</a>
+	<div class="wrap nav-row">
+		<a href="/" class="brand" aria-label="ubeTools — beranda">
+			<span>ubeTools</span>
+			<img src="/logo-64.png" alt="" width="24" height="24" />
 		</a>
 
-		<div class="flex items-center gap-2">
+		<div class="nav-actions">
 			<nav aria-label="Navigasi utama">
 				<a
 					class="nav-link"
 					href="/tools"
 					aria-current={page.url.pathname.startsWith('/tools') ? 'page' : undefined}
 				>
-					Semua Tool
+					Tools
 				</a>
 			</nav>
 			<button

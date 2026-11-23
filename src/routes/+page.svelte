@@ -22,79 +22,77 @@
 </script>
 
 <svelte:head>
-	<title>ubeTools — Utilitas web cepat, langsung di browser</title>
+	<title>ubeTools | Utilitas web cepat, langsung di browser</title>
 	<meta
 		name="description"
-		content="Unduh thumbnail YouTube, ekstrak tag video, dan simpan audio Suno dari satu tempat."
+		content="Thumbnail YouTube, tag video, dan audio Suno di satu tempat."
 	/>
 </svelte:head>
 
-<section class="py-12 sm:py-16" aria-labelledby="hero-heading">
-	<div class="mx-auto w-full max-w-5xl px-4 sm:px-6">
-		<h1
-			id="hero-heading"
-			class="max-w-2xl text-[clamp(1.875rem,3vw,2.5rem)] leading-[1.15] font-bold tracking-[-0.025em]"
-		>
-			Utilitas web cepat, langsung di browser.
-		</h1>
-
-		<p
-			class="mt-4 max-w-xl text-base leading-[1.6]"
-			style="color: var(--color-on-surface-muted)"
-		>
-			Unduh thumbnail YouTube, ekstrak tag video, dan simpan audio Suno dari satu tempat.
-		</p>
+<section class="hero" data-enter aria-labelledby="hero-heading">
+	<div class="wrap hero-grid">
+		<div class="hero-text">
+			<h1 id="hero-heading" class="display-title">Alat YouTube dan Suno</h1>
+			<p class="lede">3 tool gratis untuk YouTube dan Suno, tanpa akun.</p>
+			<a class="btn-primary" href="/tools">Pilih tool</a>
+			<div class="browser-frame" data-ui role="img" aria-label="Pratinjau direktori tool ubeTools">
+				<div class="browser-top">
+					<span class="browser-dots"><i></i><i></i><i></i></span>
+					<span class="browser-url">ubetools.workers.dev/tools</span>
+				</div>
+				<div class="browser-body">
+					<div class="browser-row"><span class="browser-icon">▶</span> YouTube Thumbnail Downloader <b>YouTube</b></div>
+					<div class="browser-row"><span class="browser-icon">#</span> YouTube Tag Extractor <b>YouTube</b></div>
+					<div class="browser-row"><span class="browser-icon">♪</span> Suno Music Downloader <b>Audio</b></div>
+				</div>
+			</div>
+		</div>
 	</div>
 </section>
 
-<section
-	class="border-t py-12 sm:py-16"
-	style="border-color: var(--color-border)"
-	aria-labelledby="featured-heading"
->
-	<div class="mx-auto w-full max-w-5xl px-4 sm:px-6">
-		<div class="flex flex-wrap items-end justify-between gap-3">
-			<h2 id="featured-heading" class="text-lg font-semibold tracking-[-0.01em]">Daftar Tool</h2>
+<section class="section-rule" aria-labelledby="tools-heading">
+	<div class="wrap">
+		<h2 id="tools-heading" class="section-title">Tool YouTube dan Suno</h2>
+		<p class="lede">Tempel tautan, ambil hasilnya. Tanpa akun dan tanpa riwayat.</p>
 
-			<a class="text-[13px] font-medium" href="/tools" style="color: var(--color-primary)">
-				Semua tool →
-			</a>
+		<div class="tool-visual" data-ui role="img" aria-label="Pratinjau hasil thumbnail YouTube">
+			<div class="tool-visual-bar">youtube.com/watch?v=video-id</div>
+			<div class="tool-visual-body">
+				<div class="tool-visual-thumb"></div>
+				<div class="tool-visual-rows"><span></span><span></span><span></span></div>
+			</div>
 		</div>
 
-		<ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<ul class="tool-list">
 			{#each tools as tool (tool.slug)}
 				<li>
 					<ToolCard {tool} />
 				</li>
 			{/each}
 		</ul>
+
+		<a class="btn-secondary" href="/tools">Lihat direktori tool</a>
 	</div>
 </section>
 
-<section
-	class="border-t py-12 sm:py-16"
-	style="border-color: var(--color-border)"
-	id="faq"
-	aria-labelledby="faq-heading"
->
-	<div class="mx-auto w-full max-w-5xl px-4 sm:px-6">
-		<h2 id="faq-heading" class="text-lg font-semibold tracking-[-0.01em]">FAQ</h2>
-
-		<div class="card mt-6">
+<section class="section-rule statement" id="faq" aria-labelledby="faq-heading" data-moment="letters-assemble">
+	<div class="wrap faq-grid">
+		<div>
+			<h2 id="faq-heading" class="section-title mo-la__type">Tanpa akun</h2>
+			<p class="lede">Jawaban singkat sebelum kamu mulai.</p>
+			<svg class="faq-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" role="img" aria-hidden="true">
+				<circle cx="12" cy="12" r="9" />
+				<path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.4M12 17h.01" stroke-linecap="round" />
+			</svg>
+		</div>
+		<div class="card faq-card">
 			{#each faqs as faq (faq.q)}
-				<details
-					class="faq-item border-b px-5 py-4 last:border-b-0"
-					style="border-color: var(--color-border)"
-				>
-					<summary class="cursor-pointer text-[15px] font-medium">{faq.q}</summary>
-					<p
-						class="mt-2 text-sm leading-[1.6]"
-						style="color: var(--color-on-surface-muted)"
-					>
-						{faq.a}
-					</p>
+				<details class="faq-item">
+					<summary>{faq.q}</summary>
+					<p>{faq.a}</p>
 				</details>
 			{/each}
+			<a class="btn-primary faq-cta" href="/tools">Pilih tool</a>
 		</div>
 	</div>
 </section>

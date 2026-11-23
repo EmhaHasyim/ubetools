@@ -27,7 +27,7 @@ export const tools: Tool[] = [
 		placeholder: 'https://www.youtube.com/watch?v=...',
 		capabilities: [
 			'Mendeteksi ID video dari link yang ditempel.',
-			'Menampilkan semua ukuran thumbnail yang tersedia.',
+			'Memilih otomatis ukuran thumbnail terbaik yang tersedia.',
 			'Mengunduh gambar tanpa menyimpan link kamu.',
 		],
 	},
@@ -50,7 +50,7 @@ export const tools: Tool[] = [
 	{
 		slug: 'suno-music',
 		name: 'Suno Music Downloader',
-		tagline: 'Simpan M4A publik dari Suno, tanpa metadata tambahan.',
+		tagline: 'Simpan M4A publik dari Suno, lengkap dengan detail lagu.',
 		description:
 			'Tempel satu lagu, beberapa lagu, atau playlist Suno lalu unduh M4A publiknya. Batch dan playlist dikemas dalam satu ZIP.',
 		category: 'Audio',
@@ -59,7 +59,7 @@ export const tools: Tool[] = [
 		placeholder: 'https://suno.com/song/... (satu per baris untuk beberapa lagu)',
 		capabilities: [
 			'Mendeteksi mode single, batch, atau playlist dari link yang ditempel.',
-			'Menyimpan hanya audio M4A publik, tanpa konversi atau metadata tambahan.',
+			'Menampilkan judul, durasi, dan detail lagu sebelum mengunduh M4A.',
 			'Mengunduh banyak lagu sebagai satu ZIP bernomor, maksimal 50 link.',
 		],
 	},

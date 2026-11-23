@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="id" data-theme="light">
+<html lang="id" data-theme="light" data-type="software" data-radius="sharp" data-buttons="solid">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="page-type" content="software" />
+		<meta name="site-kind" content="software" />
 		<link rel="icon" href="/favicon.ico" sizes="any" />
 		<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
 		<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
@@ -59,7 +61,8 @@
 		<script>
 			;(function () {
 				try {
-					document.documentElement.classList.add('js')
+					document.documentElement.classList.add('js', 'm-enter')
+					setTimeout(() => document.documentElement.classList.add('m-enter-done'), 700)
 				} catch (e) {}
 				try {
 					var stored = localStorage.getItem('ubetools-theme')

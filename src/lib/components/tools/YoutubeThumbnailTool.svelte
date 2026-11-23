@@ -16,6 +16,7 @@
 	let errorMessage = $state('')
 	let copied = $state('')
 	let result = $state<{ videoId: string; thumbnails: Thumbnail[] } | null>(null)
+	const best = $derived(result?.thumbnails[0] ?? null)
 
 	const submitLabel = $derived(loading ? 'Memproses...' : 'Ambil thumbnail')
 
@@ -75,7 +76,7 @@
 <p
 	id="youtube-thumbnail-hint"
 	class="mt-2 text-xs"
-	style="color: var(--color-on-surface-muted)"
+	style="color: var(--color-muted)"
 >
 	Mendukung link watch, youtu.be, Shorts, dan ID video 11 karakter.
 </p>
@@ -83,65 +84,61 @@
 {#if errorMessage}
 	<div class="alert-error mt-6" role="alert">
 		<p class="text-sm font-medium" style="color: var(--color-error)">Terjadi kesalahan</p>
-		<p class="mt-1 text-sm leading-[1.5]" style="color: var(--color-on-surface-muted)">
+		<p class="mt-1 text-sm leading-[1.5]" style="color: var(--color-muted)">
 			{errorMessage}
 		</p>
 	</div>
 {/if}
 
-{#if result}
-	<div class="mt-6 grid gap-4 sm:grid-cols-2">
-		{#each result.thumbnails as thumbnail (thumbnail.variant)}
-			<article class="card p-3">
-				<div
-					class="aspect-video w-full overflow-hidden rounded-md"
-					style="background: var(--color-surface-subtle)"
-				>
-					<img
-						src={thumbnail.url}
-						alt={`Thumbnail ${thumbnail.label} ${thumbnail.width}×${thumbnail.height}`}
-						width={thumbnail.width}
-						height={thumbnail.height}
-						loading="lazy"
-						decoding="async"
-						class="h-full w-full object-contain"
-					/>
-				</div>
-				<p class="label-mono mt-3">{thumbnail.label} · {thumbnail.width}×{thumbnail.height}</p>
-				<div class="mt-3 flex flex-wrap items-center gap-2">
-					<a
-						class="btn-primary inline-flex h-10 items-center px-4 text-[13px]"
-						href={downloadHref(result.videoId, thumbnail.variant)}
-					>
-						Unduh
-					</a>
-					<button
-						type="button"
-						class="btn-secondary"
-						class:is-copied={copied === thumbnail.variant}
-						onclick={() => copy(thumbnail)}
-					>
-						{copied === thumbnail.variant ? 'Tersalin' : 'Salin URL'}
-					</button>
-					<a
-						class="footer-link text-xs"
-						href={thumbnail.url}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Buka
-					</a>
-				</div>
-			</article>
-		{/each}
-	</div>
+{#if best && result}
+	<article class="card mt-6 p-3">
+		<div
+			class="aspect-video w-full overflow-hidden rounded-md"
+			style="background: var(--color-paper-3)"
+		>
+			<img
+				src={best.url}
+				alt={`Thumbnail ${best.label} ${best.width}×${best.height}`}
+				width={best.width}
+				height={best.height}
+				fetchpriority="high"
+				decoding="async"
+				class="h-full w-full object-contain"
+			/>
+		</div>
+		<p class="label-mono mt-3">{best.label} · {best.width}×{best.height}</p>
+		<div class="mt-3 flex flex-wrap items-center gap-2">
+			<a
+				class="btn-primary inline-flex h-10 items-center px-4"
+				href={downloadHref(result.videoId, best.variant)}
+			>
+				Unduh
+			</a>
+			<button
+				type="button"
+				class="btn-secondary"
+				class:is-copied={copied === best.variant}
+				onclick={() => copy(best)}
+			>
+				{copied === best.variant ? 'Tersalin' : 'Salin URL'}
+			</button>
+			<a
+				class="footer-link text-xs"
+				href={best.url}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				Buka
+			</a>
+		</div>
+	</article>
 {:else if !loading && !errorMessage}
 	<div class="empty-state mt-6">
-		<p class="text-[15px] font-medium" style="color: var(--color-on-surface)">
+		<p class="text-base font-medium sm:text-[15px]" style="color: var(--color-ink)">
 			Hasil akan muncul di sini.
 		</p>
 		<p class="mt-1 text-sm">
-			Tempel link video YouTube untuk melihat semua ukuran thumbnail yang tersedia.
+			Tempel link video YouTube untuk mengambil thumbnail kualitas terbaik yang tersedia.
 		</p>
 	</div>
 {/if}

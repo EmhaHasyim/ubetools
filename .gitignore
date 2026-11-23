@@ -32,6 +32,8 @@ worker-configuration.d.ts
 .freebuff/
 .elysia/
 .tmp-als/
+.superpowers/
+.workbuddy-ai/
 
 # Editor (keep shared extensions, ignore personal settings)
 .vscode/*
@@ -39,3 +41,8 @@ worker-configuration.d.ts
 
 # Orca / inspection screenshots
 .shots/
+.hallmark/
+.hallmark-dev.log
+.hallmark-dev.pid
+
+.taste-skill/

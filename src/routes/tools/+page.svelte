@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state'
-	import ToolCard from '#lib/components/ToolCard.svelte'
+	import ToolIcon from '#lib/components/ToolIcon.svelte'
 	import { categories, tools, type Category } from '#lib/tools.ts'
 	import { onMount } from 'svelte'
 
@@ -10,7 +10,7 @@
 
 	$effect(() => {
 		const q = page.url.searchParams.get('q')
-		if (q !== null) query = q
+		if (q !== null && q !== query) query = q
 	})
 
 	const visible = $derived.by(() => {
@@ -47,33 +47,22 @@
 <svelte:window onkeydown={onKeydown} />
 
 <svelte:head>
-	<title>Semua tool — ubeTools</title>
+	<title>Semua tool | ubeTools</title>
 	<meta name="description" content="Direktori tool ubeTools: thumbnail dan tag YouTube, audio Suno." />
 </svelte:head>
 
-<section class="py-12 sm:py-16" aria-labelledby="tools-heading">
-	<div class="mx-auto w-full max-w-5xl px-4 sm:px-6">
-		<nav class="text-xs" aria-label="Breadcrumb" style="color: var(--color-on-surface-muted)">
+<section aria-labelledby="tools-heading">
+	<div class="shell py-12 sm:py-14">
+		<nav class="text-xs" aria-label="Breadcrumb">
 			<a class="footer-link" href="/">Beranda</a>
 			<span class="mx-1.5" aria-hidden="true">/</span>
-			<span style="color: var(--color-on-surface)">Tool</span>
+			<span class="breadcrumb-current">Tool</span>
 		</nav>
 
-		<p class="label-mono mt-6">Direktori</p>
-		<h1
-			id="tools-heading"
-			class="mt-2 text-2xl font-semibold tracking-[-0.02em]"
-		>
-			Semua tool
-		</h1>
-		<p
-			class="mt-3 max-w-xl text-[15px] leading-[1.6]"
-			style="color: var(--color-on-surface-muted)"
-		>
-			Cari berdasarkan nama, atau saring berdasarkan kategori.
-		</p>
+		<h1 id="tools-heading" class="display-title mt-6">Semua tool</h1>
+		<p class="lede mt-4">Cari berdasarkan nama, atau saring berdasarkan kategori.</p>
 
-		<div class="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+		<div class="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
 			<form class="search-box w-full max-w-md" role="search" onsubmit={(event) => event.preventDefault()}>
 				<svg
 					width="16"
@@ -83,7 +72,7 @@
 					stroke="currentColor"
 					stroke-width="1.75"
 					stroke-linecap="round"
-					style="color: var(--color-on-surface-muted)"
+					class="search-icon"
 					aria-hidden="true"
 				>
 					<circle cx="11" cy="11" r="7" />
@@ -116,29 +105,50 @@
 			</div>
 		</div>
 
-		<p class="mt-4 text-xs" aria-live="polite" style="color: var(--color-on-surface-muted)">
-			{visible.length} dari {tools.length} tool
-		</p>
+		<div class="mt-10 section-rule">
+			<p class="label-mono pt-4 text-xs" aria-live="polite">
+				{visible.length} dari {tools.length} tool
+			</p>
 
-		{#if visible.length}
-			<ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{#each visible as tool (tool.slug)}
-					<li>
-						<ToolCard {tool} />
-					</li>
-				{/each}
-			</ul>
-		{:else}
-			<div class="empty-state mt-6">
-				<p class="text-[15px]">Tidak ada tool yang cocok dengan “{query}”.</p>
-				<button
-					type="button"
-					class="btn-primary mt-4 inline-flex h-10 items-center px-4 text-sm"
-					onclick={resetFilters}
-				>
-					Reset filter
-				</button>
-			</div>
-		{/if}
+			{#if visible.length}
+				<ul class="mt-2">
+					{#each visible as tool, i (tool.slug)}
+						<li>
+							<a class="index-row" href="/tools/{tool.slug}">
+								<span class="label-mono index-number">{String(i + 1).padStart(2, '0')}</span>
+								<span class="icon-tile">
+									<ToolIcon tone={tool.tone} size={20} />
+								</span>
+								<span class="min-w-0">
+									<span class="block font-semibold">{tool.name}</span>
+									<span class="index-tagline">{tool.tagline}</span>
+								</span>
+								<span class="badge">{tool.category}</span>
+								<svg
+									class="index-arrow"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.75"
+									stroke-linecap="round"
+									aria-hidden="true"
+								>
+									<path d="M5 12h14m-6-6 6 6-6 6" />
+								</svg>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<div class="empty-state mt-4">
+					<p>Tidak ada tool yang cocok dengan “{query}”.</p>
+					<button type="button" class="btn-primary mt-4" onclick={resetFilters}>
+						Reset filter
+					</button>
+				</div>
+			{/if}
+		</div>
 	</div>
 </section>

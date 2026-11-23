@@ -112,6 +112,11 @@ Fonts load exclusively from Google Fonts (enforced by `_headers` CSP):
 | Label MD   | Sans      | `0.8125rem` (13px)             | `1.4`       | `500`  | `0`        | Buttons, nav links, form labels           |
 | Label SM   | Mono/Sans | `0.75rem` (12px)               | `1.3`       | `500`  | `0.02em`   | Status badges ("Segera"), resolution tags |
 
+**Mobile (<640px) overrides:** `text-xs`, `.label-mono`, `.badge` and `.search-kbd` become 14px;
+`text-sm`, `.nav-link`, `.footer-link` and `.filter-chip` become 15px (14px for the latter three);
+`text-[15px]` copy becomes 16px. All input/textarea fonts become 16px to prevent iOS zoom.
+Desktop keeps the table above unchanged.
+
 ## 4. Layout & Spacing
 
 Built on a strict **4px spacing grid** (`4`, `8`, `12`, `16`, `20`, `24`, `32`, `48`, `64`).
@@ -125,7 +130,7 @@ Built on a strict **4px spacing grid** (`4`, `8`, `12`, `16`, `20`, `24`, `32`, 
     input bar, output panel, then brief usage/FAQ notes below.
 - **Grids:**
   - `ToolCard` grid: `1` column (`<640px`), `2` columns (`640px–1023px`), `3` columns (`>=1024px`), `gap: 16px`.
-  - Thumbnail result grid: responsive `2` columns on desktop with `16:9` aspect-ratio frames.
+  - Thumbnail result: a single best-available card (resolution fallback ordered) with a `16:9` aspect-ratio frame; no variant picker.
 - **Vertical Rhythm:** `48px–64px` between major page sections; `16px–24px` between related blocks.
 
 ## 5. Elevation & Depth
@@ -154,13 +159,13 @@ Keep radii tight and consistent to preserve a technical, precision feel:
 ### Header & Footer
 
 - `Header`: Height `60px`. Left: text-first wordmark `ubeTools` (semibold, tight tracking).
-  Right: clean links (`Tools`) + icon-only theme toggle button (minimum `36x36px` hit target, `aria-label` in Indonesian).
+  Right: clean links (`Tools`) + icon-only theme toggle button (`44x44px` mobile, `36x36px` desktop, `aria-label` in Indonesian).
 - `Footer`: Compact single-row on desktop, stacked on mobile. Copyright, brief positioning line,
   and essential links only.
 
 ### Primary & Secondary Buttons
 
-- **Height:** `40px` standard (`44px` inside hero/tool submit bar).
+- **Height:** `40px` desktop / `44px` mobile (tool command bar: `52px` desktop, `56px` mobile).
 - **Primary:** `--color-primary` background, `--color-on-primary` text, `font-weight: 500`, `radius-md`.
 - **Secondary / Copy Action:** `--color-surface-elevated` background, `1px solid var(--color-border-strong)`,
   `--color-on-surface` text; hover shifts background to `--color-surface-subtle`.
@@ -169,7 +174,8 @@ Keep radii tight and consistent to preserve a technical, precision feel:
 ### Input & Tool Command Bar
 
 - Primary tool URL input sits prominently above the fold on `/tools/[slug]`.
-- Height `44px`, `JetBrains Mono` for URL values, clear placeholder example (e.g., `https://youtube.com/watch?v=...`).
+- Height `52px` desktop / `56px` mobile, `JetBrains Mono` for URL values, clear placeholder example (e.g., `https://youtube.com/watch?v=...`). The taller bar is a deliberate exception to the 44px button height for comfortable mobile pasting.
+- Font size `16px` on mobile so iOS Safari does not auto-zoom on focus. In the stacked mobile layout the input must use `flex: none`; a `flex: 1` input in a column flex container collapses to its content height.
 - Pair input + primary submit button inline on `>=640px`, stacked full-width on mobile.
 
 ### ToolCard (`ToolCard.svelte` + `ToolIcon.svelte`)

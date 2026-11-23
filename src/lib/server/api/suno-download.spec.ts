@@ -21,8 +21,9 @@ function audioResponse(bytes: Uint8Array, headers: Record<string, string> = {}):
 	})
 }
 
-function clip(encoding?: string) {
+function clip(encoding?: string, title = 'Let the Silence Take Up Space') {
 	return {
+		title,
 		media_urls: [
 			{
 				url: AUDIO,
@@ -37,7 +38,11 @@ function clip(encoding?: string) {
 function token(files: unknown[], zip: boolean) {
 	return Buffer.from(
 		JSON.stringify({
-			files: files.map((file) => ({ ...(file as object), id: SONG_A })),
+			files: files.map((file) => ({
+				...(file as object),
+				id: SONG_A,
+				encrypted: (file as { encrypted?: boolean }).encrypted ?? false,
+			})),
 			zip,
 		}),
 	).toString('base64url')
@@ -78,24 +83,32 @@ describe('POST /api/tools/suno-music', () => {
 		expect(data).not.toHaveProperty('filename')
 	})
 
-	test('zips only public M4A files from a batch', async () => {
+	test('zips every public M4A file from a batch, including encrypted ones', async () => {
 		let call = 0
-		vi.stubGlobal('fetch', async () => response(clip(call++ === 0 ? undefined : '1.0.0')))
+		vi.stubGlobal('fetch', async () =>
+			response(
+				clip(
+					call++ === 0 ? undefined : '1.0.0',
+					call === 2 ? 'Neon Rain' : 'Let the Silence Take Up Space',
+				),
+			),
+		)
 		const result = await post(`https://suno.com/song/${SONG_A}\nhttps://suno.com/song/${SONG_B}`)
 		expect(result.status).toBe(200)
 		const data = (await result.json()) as Record<string, unknown>
 		expect(data.mode).toBe('batch')
 		const tokenQuery = String(data.downloadUrl).split('token=')[1]!
-		expect(atob(tokenQuery)).toContain('01.m4a')
-		expect(atob(tokenQuery)).not.toContain('02.m4a')
+		expect(atob(tokenQuery)).toContain('Let the Silence Take Up Space.m4a')
+		expect(atob(tokenQuery)).toContain('Neon Rain.m4a')
+		expect(atob(tokenQuery)).toContain('"encrypted":true')
 	})
 
 	test('rejects duplicate output names in a download token', async () => {
 		const duplicate = Buffer.from(
 			JSON.stringify({
 				files: [
-					{ id: SONG_A, name: '01.m4a' },
-					{ id: SONG_B, name: '01.m4a' },
+					{ id: SONG_A, name: '01.m4a', encrypted: false },
+					{ id: SONG_B, name: '01.m4a', encrypted: false },
 				],
 				zip: true,
 			}),
@@ -106,23 +119,31 @@ describe('POST /api/tools/suno-music', () => {
 
 	test('uses the playlist ID for every clip in a playlist download token', async () => {
 		vi.stubGlobal('fetch', async () =>
-			response({ playlist_clips: [{ clip: clip() }, { clip: clip() }] }),
+			response({
+				playlist_clips: [
+					{ clip: { ...clip(), id: SONG_A } },
+					{ clip: { ...clip(undefined, 'Neon Rain'), id: SONG_B } },
+				],
+			}),
 		)
 		const result = await post(`https://suno.com/playlist/${PLAYLIST}`)
 		expect(result.status).toBe(200)
 		const data = (await result.json()) as { downloadUrl: string }
 		const saved = JSON.parse(atob(data.downloadUrl.split('token=')[1]!)) as {
-			files: { id: string; name: string }[]
+			files: { id: string; name: string; encrypted?: boolean }[]
 		}
-		expect(saved.files.map((file) => file.id)).toEqual([PLAYLIST, PLAYLIST])
-		expect(saved.files.map((file) => file.name)).toEqual(['01.m4a', '02.m4a'])
+		expect(saved.files.map((file) => file.id)).toEqual([SONG_A, SONG_B])
+		expect(saved.files.map((file) => file.name)).toEqual([
+			'Let the Silence Take Up Space.m4a',
+			'Neon Rain.m4a',
+		])
 	})
 
-	test('returns 502 when every song only has encrypted audio', async () => {
+	test('resolves encrypted audio without skipping it', async () => {
 		vi.stubGlobal('fetch', async () => response(clip('1.0.0')))
 		const result = await post(`https://suno.com/song/${SONG_A}\nhttps://suno.com/song/${SONG_B}`)
-		expect(result.status).toBe(502)
-		expect(((await result.json()) as { detail: string }).detail).toContain('M4A publik')
+		expect(result.status).toBe(200)
+		await expect(result.json()).resolves.not.toHaveProperty('skipped')
 	})
 })
 
@@ -219,9 +240,9 @@ describe('GET /api/tools/suno-music/download', () => {
 	test('skips a clip whose fresh media URL is no longer public', async () => {
 		vi.stubGlobal('fetch', async (input: string) => {
 			if (!input.includes('/api/clip/')) return audioResponse(new Uint8Array([9]))
-			return response(clip('1.0.0'))
+			return response(clip())
 		})
-		const result = await get(`token=${token([{ name: '01.m4a' }], false)}`)
+		const result = await get(`token=${token([{ name: '01.m4a', encrypted: true }], false)}`)
 		expect(result.status).toBe(502)
 	})
 
@@ -239,7 +260,10 @@ describe('GET /api/tools/suno-music/download', () => {
 
 	test('reports how many batch clips were skipped', async () => {
 		let call = 0
-		vi.stubGlobal('fetch', async () => response(clip(call++ === 0 ? undefined : '1.0.0')))
+		vi.stubGlobal('fetch', async () => {
+			if (call++ === 0) return response(clip())
+			return response({ media_urls: [] })
+		})
 		const result = await post(`https://suno.com/song/${SONG_A}\nhttps://suno.com/song/${SONG_B}`)
 		expect(result.status).toBe(200)
 		expect((await result.json()) as Record<string, unknown>).toMatchObject({ skipped: 1 })

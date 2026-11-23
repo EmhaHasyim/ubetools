@@ -19,10 +19,22 @@ describe('Suno Music Downloader wiring', () => {
 		expect(tool).not.toContain('tanpa judul atau metadata')
 	})
 
+	test('names the download after the song title', () => {
+		const component = read('src/lib/components/tools/SunoMusicTool.svelte')
+		expect(component).toContain("download={`${result.tracks[0]?.title ?? 'lagu'}.m4a`}")
+	})
+
 	test('shows how many clips were skipped', () => {
 		const component = read('src/lib/components/tools/SunoMusicTool.svelte')
 		expect(component).toContain('result.skipped')
 		expect(component).toContain('dilewati karena audio tidak publik')
+	})
+
+	test('offers one card for each download mode', () => {
+		const component = read('src/lib/components/tools/SunoMusicTool.svelte')
+		expect(component).toContain("label: 'Single'")
+		expect(component).toContain("label: 'Batch'")
+		expect(component).toContain("label: 'Playlist'")
 	})
 
 	test('renders the Suno component on its tool page', () => {
