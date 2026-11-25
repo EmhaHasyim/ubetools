@@ -63,7 +63,7 @@ describe('Suno download filename', () => {
 		expect(result.status).toBe(200)
 		expect(result.headers.get('content-type')).toBe('audio/mp4')
 		expect(result.headers.get('content-disposition')).toBe(
-			'attachment; filename="Stay Where You Are 1.m4a"',
+			'attachment; filename="Stay Where You Are.m4a"',
 		)
 	})
 
@@ -77,7 +77,7 @@ describe('Suno download filename', () => {
 	test('serves Unicode titles as ASCII filenames', async () => {
 		const result = await download(`https://suno.com/song/${SONG}`, 'A😀')
 		expect(result.status).toBe(200)
-		expect(result.headers.get('content-disposition')).toBe('attachment; filename="A 1.m4a"')
+		expect(result.headers.get('content-disposition')).toBe('attachment; filename="A.m4a"')
 	})
 
 	test('falls back to a numbered filename when the title is missing', async () => {

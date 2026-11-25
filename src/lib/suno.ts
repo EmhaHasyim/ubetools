@@ -40,8 +40,8 @@ export function formatSunoDate(value: unknown): string {
 			}).format(date)
 }
 
-export function songFileName(title: string | undefined, index: number): string {
-	const suffix = ` ${index + 1}`
+export function songFileName(title: string | undefined, index: number, showIndex = true): string {
+	const suffix = showIndex ? ` ${index + 1}` : ''
 	const cleaned = title
 		?.replace(/[^A-Za-z0-9 ._'-]/g, ' ')
 		.replace(/\s+/g, ' ')

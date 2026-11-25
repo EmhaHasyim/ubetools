@@ -331,11 +331,17 @@ export const app = new Elysia({ name: 'api', prefix: '/api', precompile: true })
 				)
 
 			const albumId = parsed.mode === 'playlist' ? parsed.ids[0]! : null
-			const files: SunoDownloadFile[] = targets.map((target, index) => ({
-				id: target.id ?? albumId ?? parsed.ids[index]!,
-				name: songFileName(target.title, index),
-				...(target.encrypted ? { encrypted: true } : {}),
-			}))
+			const used = new Set<string>()
+			const files: SunoDownloadFile[] = targets.map((target, index) => {
+				let name = songFileName(target.title, index, false)
+				if (used.has(name)) name = songFileName(target.title, index)
+				used.add(name)
+				return {
+					id: target.id ?? albumId ?? parsed.ids[index]!,
+					name,
+					...(target.encrypted ? { encrypted: true } : {}),
+				}
+			})
 			const token: SunoDownloadToken = { files, zip: parsed.mode !== 'single' }
 			const encodedToken = btoa(JSON.stringify(token))
 				.replace(/\+/g, '-')

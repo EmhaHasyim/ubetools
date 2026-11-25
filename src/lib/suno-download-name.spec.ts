@@ -6,6 +6,10 @@ describe('songFileName', () => {
 		expect(songFileName('Stay Where You Are', 0)).toBe('Stay Where You Are 1.m4a')
 	})
 
+	test('omits the track number when not needed', () => {
+		expect(songFileName('A Room Gone Quiet', 14, false)).toBe('A Room Gone Quiet.m4a')
+	})
+
 	test('falls back to the track number for a missing or empty title', () => {
 		expect(songFileName(undefined, 3)).toBe('04.m4a')
 		expect(songFileName('   ', 0)).toBe('01.m4a')
